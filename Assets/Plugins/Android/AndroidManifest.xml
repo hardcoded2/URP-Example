@@ -20,7 +20,15 @@
             <meta-data android:name="unityplayer.SkipPermissionsDialog" android:value="true" />
         </activity>
     </application>
+    <uses-permission
+            android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission
+            android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission
+            android:name="vive.wave.vr.oem.data.OEMDataRead" />
 
+    <uses-permission
+            android:name="vive.wave.vr.oem.data.OEMDataWrite" />
     <!-- <uses-permission android:name="android.permission.CAMERA" /> -->
     <!-- <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> -->
 
