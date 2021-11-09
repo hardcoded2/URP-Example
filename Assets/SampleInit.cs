@@ -102,7 +102,7 @@ public class SampleInit : MonoBehaviour
         try
         {
             
-            var filePath = $"/storage/ext_sd/HelloWorldReading.txt"; //should work
+            var filePath = $"/storage/ext_sd/HelloWorldReading.txt";
             Debug.Log("Test read");
             Debug.Log($"File: {File.ReadAllText(filePath)}");
         }
