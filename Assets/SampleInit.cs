@@ -99,6 +99,17 @@ public class SampleInit : MonoBehaviour
         {
             Debug.LogException(e);
         }
+        try
+        {
+            
+            var filePath = $"/storage/ext_sd/HelloWorldReading.txt"; //should work
+            Debug.Log("Test read");
+            Debug.Log($"File: {File.ReadAllText(filePath)}");
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);
+        }
     }
 
     void testWriteReadAtPath(string filePath)
