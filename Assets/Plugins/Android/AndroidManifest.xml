@@ -6,6 +6,7 @@
                  android:label="@string/app_name"
                  android:theme="@style/Theme.WaveVR.Black"
                  android:resizeableActivity="false"
+                 android:requestLegacyExternalStorage="true"
 				 tools:replace="android:theme">  <!--You can use your theme here.-->
         <activity android:name="com.htc.vr.unity.WVRUnityVRActivity"
                   android:label="@string/app_name"

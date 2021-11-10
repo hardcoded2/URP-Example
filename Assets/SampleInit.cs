@@ -91,7 +91,6 @@ public class SampleInit : MonoBehaviour
         }
         try
         {
-            
             var filePath = $"/storage/ext_sd/testingbar"; //should work
             testWriteReadAtPath(filePath);
         }
@@ -104,6 +103,17 @@ public class SampleInit : MonoBehaviour
             
             var filePath = $"/storage/ext_sd/HelloWorldReading.txt";
             Debug.Log("Test read");
+            Debug.Log($"File: {File.ReadAllText(filePath)}");
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);
+        }
+        try
+        {
+            
+            var filePath = $"/storage/3365-3432/HelloWorldReading.txt";
+            Debug.Log("Test read2");
             Debug.Log($"File: {File.ReadAllText(filePath)}");
         }
         catch (Exception e)
