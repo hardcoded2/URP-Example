@@ -22,7 +22,8 @@ jobs:
       LICENSE2022: ${{ secrets.LICENSE_2022 }}
     strategy:
       matrix:
-        unity-version-matrix: [ 2019.4.36f1,2020.3.30f1, 2021.2.14f1, 2022.1.0b14 ]
+#        unity-version-matrix: [ 2019.4.36f1,2020.3.30f1, 2021.2.14f1, 2022.1.0b14 ]
+        unity-version-matrix: [ 2019.4.36f1 ]
 
     steps:
       - name: Checkout Code
