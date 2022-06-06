@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   preferedStereoRenderingPath: 1
   useDoubleWidth: 0
-  useRenderMask: 1
+  useRenderMask: 0
   enableTimeWarpStabilizedMode: 2
   adaptiveQualityMode: 2
   AQ_SendQualityEvent: 1
@@ -28,7 +28,7 @@ MonoBehaviour:
   - 0.8
   - 0.7
   - 0.6
-  foveationMode: 2
+  foveationMode: 0
   leftClearVisionFOV: 38
   rightClearVisionFOV: 38
   leftPeripheralQuality: 2
