@@ -9,10 +9,10 @@ using Wave.Essence;
 
 public class SampleInit : MonoBehaviour
 {
-    IEnumerator WaitOnPermissions(PermissionManager pmInstance,string[] permissions)
+    IEnumerator WaitOnPermissions(PermissionManager pmInstance,string[] permissions,int maxRequestCount=1000)
     {
         bool gotPermissions = false;
-        for(int i=0;i<1000;i++)
+        for(int i=0;i<maxRequestCount;i++)
         {
             (bool finished, bool success) = (false,true);
 
@@ -47,6 +47,12 @@ public class SampleInit : MonoBehaviour
             Debug.LogError("Didn't get permissions. womp womp");
         }
     }
+
+    /*
+    <uses-permission android:name="com.htc.vr.core.server.VRDataWrite"/>
+    <uses-permission android:name="com.htc.vr.core.server.VRDataRead"/>
+    <uses-permission android:name="com.htc.vr.core.server.VRDataProvider" />
+     */
     IEnumerator Start()
     {
         Debug.Log($"Start asink");
@@ -59,13 +65,39 @@ public class SampleInit : MonoBehaviour
         //,"vive.wave.vr.oem.data.OEMDataWrite" <- no popup and never gets granted
         var permissions = new[] {"android.permission.READ_EXTERNAL_STORAGE", "android.permission.WRITE_EXTERNAL_STORAGE","vive.wave.vr.oem.data.OEMDataRead"};
         
-
         yield return WaitOnPermissions(pmInstance, permissions);
+        Debug.Log("Got known good permissions");
+
+        yield return WaitOnPermissions(pmInstance, new[]
+        {
+            "com.htc.vr.core.server.VRDataRead"
+            /*,
+            "com.htc.vr.core.server.VRDataWrite", //doesn't return true ever
+            "com.htc.vr.core.server.VRDataProvider" //doesn't return true ever
+            */
+        },100);
+
         Debug.Log("About to write");
+        
+        //var filePath = $"/mnt/sdcard/Android/data/{Application.identifier}/files/testingfoo";
+        try
+        {
+            var filePath = $"/storage/ext_sd/Android/data/{Application.identifier}/files/testingfoo"; //should work
+            testWriteReadAtPath(filePath);
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);
+        }
+    }
+
+    void testWriteReadAtPath(string filePath)
+    {
         var msg = $"contents wooo {DateTime.Now.ToString()} and temp cache path {Application.temporaryCachePath} and persistent {Application.persistentDataPath}";
-        var filePath = $"/mnt/sdcard/Android/data/{Application.identifier}/files/testingfoo";
+        Debug.Log($"About to write to {filePath}");
+
         File.WriteAllText(filePath,msg);
-        Debug.Log($"Wrote message");
+        Debug.Log($"Wrote message to {filePath}");
         Debug.Log($"Value of message is {File.ReadAllText(filePath)}");
         Debug.Log($"About to print external files dirs");
     }

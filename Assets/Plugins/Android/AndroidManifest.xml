@@ -6,6 +6,7 @@
                  android:label="@string/app_name"
                  android:theme="@style/Theme.WaveVR.Black"
                  android:resizeableActivity="false"
+                 android:requestLegacyExternalStorage="true"
 				 tools:replace="android:theme">  <!--You can use your theme here.-->
         <activity android:name="com.htc.vr.unity.WVRUnityVRActivity"
                   android:label="@string/app_name"
@@ -24,11 +25,12 @@
             android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission
             android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission
-            android:name="vive.wave.vr.oem.data.OEMDataRead" />
-
-    <uses-permission
-            android:name="vive.wave.vr.oem.data.OEMDataWrite" />
+    <uses-permission android:name="com.htc.vr.core.server.VRDataWrite"/>
+    <uses-permission android:name="com.htc.vr.core.server.VRDataRead"/>
+    <uses-permission android:name="com.htc.vr.core.server.VRDataProvider" />
+    <uses-permission android:name="vive.wave.vr.oem.data.OEMDataRead" />
+    <uses-permission android:name="vive.wave.vr.oem.data.OEMDataWrite" />
+    
     <!-- <uses-permission android:name="android.permission.CAMERA" /> -->
     <!-- <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> -->
 
