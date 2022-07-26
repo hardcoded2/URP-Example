@@ -103,7 +103,7 @@ public class SampleInit : MonoBehaviour
 
     void manualWriteTest()
     {
-        const string DEBUG_SD_CARD_ID_SPECIFIC_TO_AUTHOR_HARDWARE = "3365-3432";
+        const string DEBUG_SD_CARD_ID_SPECIFIC_TO_AUTHOR_HARDWARE = "52A0-B627";
         var filesToTry = new string[]
         {
             $"/storage/ext_sd/Android/data/{Application.identifier}/files/testingfoo",
