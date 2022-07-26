@@ -103,12 +103,13 @@ public class SampleInit : MonoBehaviour
 
     void manualWriteTest()
     {
+        const string DEBUG_SD_CARD_ID_SPECIFIC_TO_AUTHOR_HARDWARE = "3365-3432";
         var filesToTry = new string[]
         {
             $"/storage/ext_sd/Android/data/{Application.identifier}/files/testingfoo",
             $"/storage/ext_sd/Android/data/{Application.identifier}/cache/testingfoo2",
-            $"/storage/3365-3432/Android/data/{Application.identifier}/cache/testingfoo3",
-            $"/storage/3365-3432/Android/data/{Application.identifier}/files/testingfoo4"
+            $"/storage/{DEBUG_SD_CARD_ID_SPECIFIC_TO_AUTHOR_HARDWARE}/Android/data/{Application.identifier}/cache/testingfoo3",
+            $"/storage/{DEBUG_SD_CARD_ID_SPECIFIC_TO_AUTHOR_HARDWARE}/Android/data/{Application.identifier}/files/testingfoo4"
         };
         var logPrefix = $"asink: {nameof(manualWriteTest)}";
         foreach (var filePath in filesToTry)
@@ -127,7 +128,7 @@ public class SampleInit : MonoBehaviour
         }
 
         //var directory = $"/storage/ext_sd/Android/data/{Application.identifier}/"; //this fails
-        var directory = $"/storage/3365-3432/Android/data/{Application.identifier}/";
+        var directory = $"/storage/{DEBUG_SD_CARD_ID_SPECIFIC_TO_AUTHOR_HARDWARE}/Android/data/{Application.identifier}/";
         PrintFilesInDirectory(directory,"testingfoo*",logPrefix);
         
     }
