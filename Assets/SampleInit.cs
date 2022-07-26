@@ -101,15 +101,20 @@ public class SampleInit : MonoBehaviour
         }
     }
 
+    void resolveSymlinkTest()
+    {
+        
+    }
     void manualWriteTest()
     {
         const string DEBUG_SD_CARD_ID_SPECIFIC_TO_AUTHOR_HARDWARE = "52A0-B627";
+        const string fileNamePrefix = "testingfoo";
         var filesToTry = new string[]
         {
-            $"/storage/ext_sd/Android/data/{Application.identifier}/files/testingfoo",
-            $"/storage/ext_sd/Android/data/{Application.identifier}/cache/testingfoo2",
-            $"/storage/{DEBUG_SD_CARD_ID_SPECIFIC_TO_AUTHOR_HARDWARE}/Android/data/{Application.identifier}/cache/testingfoo3",
-            $"/storage/{DEBUG_SD_CARD_ID_SPECIFIC_TO_AUTHOR_HARDWARE}/Android/data/{Application.identifier}/files/testingfoo4"
+            $"/storage/ext_sd/Android/data/{Application.identifier}/files/{fileNamePrefix}1",
+            $"/storage/ext_sd/Android/data/{Application.identifier}/cache/{fileNamePrefix}2",
+            $"/storage/{DEBUG_SD_CARD_ID_SPECIFIC_TO_AUTHOR_HARDWARE}/Android/data/{Application.identifier}/cache/{fileNamePrefix}3",
+            $"/storage/{DEBUG_SD_CARD_ID_SPECIFIC_TO_AUTHOR_HARDWARE}/Android/data/{Application.identifier}/files/{fileNamePrefix}4"
         };
         var logPrefix = $"asink: {nameof(manualWriteTest)}";
         foreach (var filePath in filesToTry)
@@ -129,7 +134,7 @@ public class SampleInit : MonoBehaviour
 
         //var directory = $"/storage/ext_sd/Android/data/{Application.identifier}/"; //this fails
         var directory = $"/storage/{DEBUG_SD_CARD_ID_SPECIFIC_TO_AUTHOR_HARDWARE}/Android/data/{Application.identifier}/";
-        PrintFilesInDirectory(directory,"testingfoo*",logPrefix);
+        PrintFilesInDirectory(directory,$"{fileNamePrefix}*",logPrefix);
         
     }
 
@@ -153,9 +158,10 @@ public class SampleInit : MonoBehaviour
         //try writing to all drives
         int fileNumber = 0;
         var logPrefix = $"asink: {nameof(testWriteToAllStorageDirectories)}";
+        const string fileNamePrefix = "testingbar";
         foreach (var rootDirectory in Directory.EnumerateDirectories("/storage"))
         {
-            var filePath = $"{rootDirectory}/Android/data/{Application.identifier}/files/testingbar{fileNumber++}";
+            var filePath = $"{rootDirectory}/Android/data/{Application.identifier}/files/{fileNamePrefix}{fileNumber++}";
             try
             {
                 testWriteReadAtPath(filePath);
