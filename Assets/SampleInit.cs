@@ -160,16 +160,14 @@ public class SampleInit : MonoBehaviour
             {
                 testWriteReadAtPath(filePath);
                 Debug.Log($"{logPrefix} successfully wrote file {filePath}");
+                PrintFilesInDirectory(rootDirectory,$"{fileNamePrefix}*",logPrefix);
             }
             catch (Exception e)
             {
                 Debug.LogError($"{logPrefix} Failed to write file {filePath}");
                 Debug.LogException(e);
             }
-            
         }
-        var directory = $"/storage/";
-        PrintFilesInDirectory(directory,"testingbar*",logPrefix);
     }
 
     void testWriteReadAtPath(string filePath)
