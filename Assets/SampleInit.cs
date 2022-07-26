@@ -174,7 +174,7 @@ public class SampleInit : MonoBehaviour
 
     void testWriteReadAtPath(string filePath)
     {
-        var msg = $"contents wooo {DateTime.Now.ToString()} and temp cache path {Application.temporaryCachePath} and persistent {Application.persistentDataPath}";
+        var msg = $"contents wooo {DateTime.Now.ToString()} to file location {filePath}";
         Debug.Log($"About to write to {filePath}");
 
         File.WriteAllText(filePath,msg);
