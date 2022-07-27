@@ -99,15 +99,66 @@ public class SampleInit : MonoBehaviour
             Debug.LogError($"asink: error writing to all storage directories" + e.Message);
             Debug.LogException(e);
         }
+
+        symlinkTest();
     }
 
-    void resolveSymlinkTest()
+    void symlinkTest()
     {
-        
+        try
+        {
+            string sdcardPathIfPresent = resolveSymlink("/storage/ext_sd"); //todo: does this throw if the sdcard isn't there?
+            Debug.Log($"SDCard path {sdcardPathIfPresent}");
+            //not sure if there is a slash at the end
+            //add one for now
+            var sdcardPath = sdcardPathIfPresent.EndsWith("/") ? sdcardPathIfPresent : sdcardPathIfPresent + "/";
+            const string fileNamePrefix = "testingbaz";
+            var filesToTry = new string[]
+            {
+                $"/storage/ext_sd/Android/data/{Application.identifier}/files/{fileNamePrefix}1",
+                $"/storage/ext_sd/Android/data/{Application.identifier}/cache/{fileNamePrefix}2",
+                $"/storage/{sdcardPath}/Android/data/{Application.identifier}/cache/{fileNamePrefix}3",
+                $"/storage/{sdcardPath}/Android/data/{Application.identifier}/files/{fileNamePrefix}4"
+            };
+            var logPrefix = $"asink: {nameof(manualWriteTest)}";
+            foreach (var filePath in filesToTry)
+            {
+                try
+                {
+                    testWriteReadAtPath(filePath);
+                    Debug.Log($"{logPrefix} successfully wrote file {filePath}");
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"{logPrefix} Failed to write file {filePath} : {e.Message}");
+                    Debug.LogException(e);
+                }
+            
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("error in resolving symlink "+e.Message);
+            Debug.LogException(e);
+        }
+    }
+    string resolveSymlink(string symlinkPath)
+    {
+        //return result for java "FileSystems.getDefault().getPath("/storage/ext_sd").toRealPath().toString();"
+        AndroidJavaClass fileSystemsClass = new AndroidJavaClass("java.nio.file.FileSystems");
+        AndroidJavaObject fileSystemInstance = fileSystemsClass.CallStatic<AndroidJavaObject>("getDefault"); // .GetStatic<AndroidJavaObject>("currentActivity");
+        Debug.Log($"FS instance info {fileSystemInstance.}");
+        AndroidJavaClass pathClass = new AndroidJavaClass("java.nio.file.Path");
+        AndroidJavaObject symlinkPathObjectInstance = fileSystemInstance.Call<pathClass>("getPath", symlinkPath);
+
+        var symlinkRealPath = symlinkPathObjectInstance.Call<AndroidJavaObject>("toRealPath");
+        string symlinkCSharpString = symlinkRealPath.Call<string>("toString");
+        return symlinkCSharpString;
     }
     void manualWriteTest()
     {
-        const string DEBUG_SD_CARD_ID_SPECIFIC_TO_AUTHOR_HARDWARE = "52A0-B627";
+        //const string DEBUG_SD_CARD_ID_SPECIFIC_TO_AUTHOR_HARDWARE = "52A0-B627"; // is usb stick
+        const string DEBUG_SD_CARD_ID_SPECIFIC_TO_AUTHOR_HARDWARE = "3365-3432"; //microsd
         const string fileNamePrefix = "testingfoo";
         var filesToTry = new string[]
         {
