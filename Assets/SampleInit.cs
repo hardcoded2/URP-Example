@@ -79,7 +79,7 @@ public class SampleInit : MonoBehaviour
         */
 
         Debug.Log("About to write");
-        
+  /*      
         //var filePath = $"/mnt/sdcard/Android/data/{Application.identifier}/files/testingfoo";
         try
         {
@@ -99,7 +99,7 @@ public class SampleInit : MonoBehaviour
             Debug.LogError($"asink: error writing to all storage directories" + e.Message);
             Debug.LogException(e);
         }
-
+*/
         symlinkTest();
     }
 
@@ -141,19 +141,48 @@ public class SampleInit : MonoBehaviour
             Debug.LogError("error in resolving symlink "+e.Message);
             Debug.LogException(e);
         }
+        
     }
+   
+     string resolveSymlinkUsingFile()
+     {
+         
+     }
     string resolveSymlink(string symlinkPath)
     {
         //return result for java "FileSystems.getDefault().getPath("/storage/ext_sd").toRealPath().toString();"
         AndroidJavaClass fileSystemsClass = new AndroidJavaClass("java.nio.file.FileSystems");
         AndroidJavaObject fileSystemInstance = fileSystemsClass.CallStatic<AndroidJavaObject>("getDefault"); // .GetStatic<AndroidJavaObject>("currentActivity");
-        Debug.Log($"FS instance info {fileSystemInstance.}");
+        Debug.Log($"Is fs null {fileSystemInstance == null} ");
         AndroidJavaClass pathClass = new AndroidJavaClass("java.nio.file.Path");
-        AndroidJavaObject symlinkPathObjectInstance = fileSystemInstance.Call<pathClass>("getPath", symlinkPath);
+        AndroidJavaObject pathInstanceTest = new AndroidJavaObject("java.nio.file.Path")
+        //AndroidJavaObject pathObject = new AndroidJavaObject("")
+
+        //AndroidJavaObject symlinkPathObjectInstance = fileSystemInstance.Call<AndroidJavaObject>("getPath", symlinkPath); //i think this fails since it's trying to use the Path version instead of the arbitrary string based ones.. could fix this if i did the marshalling myself
+        //AndroidJavaObject symlinkPathObjectInstance = fileSystemInstance.Call<AndroidJavaObject>("getPath", "storage","ext_sd"); 
+        //AndroidJNIHelper.CreateJNIArgArray()
+        //public static IntPtr ConvertToJNIArray(Array array) => _AndroidJNIHelper.ConvertToJNIArray(array);
+        //maybe something here... AndroidJNIHelper.ConvertToJNIArray()
+        
+        //AndroidJavaObject symlinkPathObjectInstance = fileSystemInstance.Call<AndroidJavaObject>("getPath", "storage","ext_sd"); //this still fails
+        //AndroidJNIHelper.CreateJNIArgArray(new object[0]);
+        // fake --IntPtr method_getData = AndroidJNIHelper.GetMethodID(intent.GetRawClass(), "getData", "()Ljava/lang/Object;");
+
+        //try next... manual thingies
+        //AndroidJNIHelper.GetMethodID(fileSystemInstance.GetRawClass(), "getPath", "()Ljava/lang/Object;");
+        //IntPtr rawPointerToArray = AndroidJNIHelper.ConvertToJNIArray(new string[]{ symlinkPath});
+        //AndroidJavaObject symlinkPathObjectInstance = fileSystemInstance.Call<string>("getPath", rawPointerToArray);
+        /*
+        AndroidJNIHelper.GetSignature()
+        AndroidJNIHelper.GetSignature() + 
+        AndroidJavaObject symlinkPathObjectInstance = fileSystemInstance.Call<AndroidJavaObject>("getPath", new []{ new string[]{"/storage","ext_sd"}});
+        IntPtr methodId = AndroidJNIHelper.GetMethodID<ReturnType>((IntPtr) this.m_jclass, methodName, args, false);
 
         var symlinkRealPath = symlinkPathObjectInstance.Call<AndroidJavaObject>("toRealPath");
         string symlinkCSharpString = symlinkRealPath.Call<string>("toString");
-        return symlinkCSharpString;
+                */
+
+        return "symlinkCSharpString";
     }
     void manualWriteTest()
     {
