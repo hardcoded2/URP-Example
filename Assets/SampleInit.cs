@@ -1,71 +1,76 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
-using UnityEngine.Experimental.XR.Interaction;
-using UnityEngine.XR.Management;
-using Wave.Essence;
 
 public class SampleInit : MonoBehaviour
 {
-    IEnumerator WaitOnPermissions(PermissionManager pmInstance,string[] permissions)
-    {
-        bool gotPermissions = false;
-        for(int i=0;i<1000;i++)
-        {
-            (bool finished, bool success) = (false,true);
 
-            pmInstance.requestPermissions(permissions,results => {
-                foreach (var result in results)
-                {
-                    Debug.Log($"Request for {result.PermissionName} granted result:{result.Granted}");
-                    if (result.Granted == false)
-                    {
-                        success = false;
-                    }
-                }
-                finished = true;
-            });
-            Debug.Log("waiting for permissions");
-            while (finished == false)
-            {
-                yield return null;
-            }
-            Debug.Log($"finished waiting for permissions was it successful {success}");
-            if (success)
-            {
-                gotPermissions = true;
-                break;
-            }
-            Debug.Log($"Retrying {i}");
-            yield return new WaitForSeconds(.3f);
-        }
-        Debug.Log($"Permissions got ret");
-        if (!gotPermissions)
+    void Start()
+    {
+        string androidSDCardPath = GetAndroidExternalSDDir();
+        if (string.IsNullOrEmpty(androidSDCardPath))
         {
-            Debug.LogError("Didn't get permissions. womp womp");
+            Debug.Log($"Android sd card path is empty");
+            return;
+        }
+        
+        Debug.Log($"android sd card: {androidSDCardPath}");
+        testWriteReadAtPath($"{androidSDCardPath}/testingAgain");
+    }
+
+    public static string GetAndroidExternalSDDir() //returns the /files directory, ie /storage/3365-3432/Android/data/com.DefaultCompany.URP_Example24/files - if you want cache, then split the path
+    {
+        try
+        {
+            using (AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
+            {
+                using (AndroidJavaObject context = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity"))
+                {
+                    // Get all available external file directories (emulated and sdCards)
+                    AndroidJavaObject[] externalFilesDirectories =  context.Call<AndroidJavaObject[]>("getExternalFilesDirs", (object)null);
+                    AndroidJavaObject sdCard = null;
+                    if (externalFilesDirectories == null)
+                    {
+                        Debug.LogError("NULL EXTERNAL FILES DIR");
+                        return "";
+                    }
+                    
+                    for (int i = 0; i < externalFilesDirectories.Length; i++)
+                    {
+                        AndroidJavaObject directory = externalFilesDirectories[i];
+                        using (AndroidJavaClass environment = new AndroidJavaClass("android.os.Environment"))
+                        {
+                            // Check which one is the sdCard.
+                            bool isRemovable = environment.CallStatic<bool>("isExternalStorageRemovable", directory);
+                            bool isEmulated = environment.CallStatic<bool>("isExternalStorageEmulated", directory);
+                            if (isRemovable && isEmulated == false)
+                                sdCard = directory;
+                        }
+                    }
+                    // Return the sdCard if available
+                    if (sdCard != null)
+                    {
+                        string returnStr = sdCard.Call<string>("getAbsolutePath");
+                        return returnStr;
+                    }
+                    else
+                        return "";// emulated.Call<string>("getAbsolutePath");
+                }
+            }
+        } catch(Exception e)
+        {
+            Debug.LogWarning(e.ToString());
+            return null;
         }
     }
-    IEnumerator Start()
+
+    void testWriteReadAtPath(string filePath)
     {
-        Debug.Log($"Start asink");
-        var pmInstance = Wave.Essence.PermissionManager.instance;
-        Debug.Log("waiting for permission manager");
-        while (!pmInstance.isInitialized())
-            yield return null;
-        Debug.Log("finished waiting for permission manager");
+        var msg = $"contents wooo {DateTime.Now.ToString()} to file location {filePath}";
+        Debug.Log($"About to write to {filePath}");
 
-        //,"vive.wave.vr.oem.data.OEMDataWrite" <- no popup and never gets granted
-        var permissions = new[] {"android.permission.READ_EXTERNAL_STORAGE", "android.permission.WRITE_EXTERNAL_STORAGE","vive.wave.vr.oem.data.OEMDataRead"};
-        
-
-        yield return WaitOnPermissions(pmInstance, permissions);
-        Debug.Log("About to write");
-        var msg = $"contents wooo {DateTime.Now.ToString()} and temp cache path {Application.temporaryCachePath} and persistent {Application.persistentDataPath}";
-        var filePath = $"/mnt/sdcard/Android/data/{Application.identifier}/files/testingfoo";
         File.WriteAllText(filePath,msg);
-        Debug.Log($"Wrote message");
+        Debug.Log($"Wrote message to {filePath}");
         Debug.Log($"Value of message is {File.ReadAllText(filePath)}");
         Debug.Log($"About to print external files dirs");
     }
