@@ -8,12 +8,17 @@ public class SampleInit : MonoBehaviour
     void Start()
     {
         string androidSDCardPath = GetAndroidExternalSDDir();
+        if (string.IsNullOrEmpty(androidSDCardPath))
+        {
+            Debug.Log($"Android sd card path is empty");
+            return;
+        }
         
         Debug.Log($"android sd card: {androidSDCardPath}");
         testWriteReadAtPath($"{androidSDCardPath}/testingAgain");
     }
 
-    public static string GetAndroidExternalSDDir()
+    public static string GetAndroidExternalSDDir() //returns the /files directory, ie /storage/3365-3432/Android/data/com.DefaultCompany.URP_Example24/files - if you want cache, then split the path
     {
         try
         {
@@ -23,7 +28,6 @@ public class SampleInit : MonoBehaviour
                 {
                     // Get all available external file directories (emulated and sdCards)
                     AndroidJavaObject[] externalFilesDirectories =  context.Call<AndroidJavaObject[]>("getExternalFilesDirs", (object)null);
-                    AndroidJavaObject emulated = null;
                     AndroidJavaObject sdCard = null;
                     if (externalFilesDirectories == null)
                     {
@@ -36,12 +40,10 @@ public class SampleInit : MonoBehaviour
                         AndroidJavaObject directory = externalFilesDirectories[i];
                         using (AndroidJavaClass environment = new AndroidJavaClass("android.os.Environment"))
                         {
-                            // Check which one is the emulated and which the sdCard.
+                            // Check which one is the sdCard.
                             bool isRemovable = environment.CallStatic<bool>("isExternalStorageRemovable", directory);
                             bool isEmulated = environment.CallStatic<bool>("isExternalStorageEmulated", directory);
-                            if (isEmulated)
-                                emulated = directory;
-                            else if (isRemovable && isEmulated == false)
+                            if (isRemovable && isEmulated == false)
                                 sdCard = directory;
                         }
                     }
@@ -50,10 +52,9 @@ public class SampleInit : MonoBehaviour
                     {
                         string returnStr = sdCard.Call<string>("getAbsolutePath");
                         return returnStr;
-                        //return returnStr.Substring(0, returnStr.IndexOf("Android")) + "/";
                     }
                     else
-                        return null;// emulated.Call<string>("getAbsolutePath");
+                        return "";// emulated.Call<string>("getAbsolutePath");
                 }
             }
         } catch(Exception e)
