@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.Experimental.XR.Interaction;
 using UnityEngine.XR.Management;
 using Wave.Essence;
+using Object = System.Object;
 
 public class SampleInit : MonoBehaviour
 {
@@ -56,6 +57,7 @@ public class SampleInit : MonoBehaviour
     IEnumerator Start()
     {
         Debug.Log($"Start asink");
+        /*
         var pmInstance = Wave.Essence.PermissionManager.instance;
         Debug.Log("waiting for permission manager");
         while (!pmInstance.isInitialized())
@@ -100,7 +102,14 @@ public class SampleInit : MonoBehaviour
             Debug.LogException(e);
         }
 */
-        symlinkTest();
+        //symlinkTest();
+        //resolveSymlinkUsingFile();
+        string androidSDCardPath = GetAndroidExternalSDDir();
+        
+        Debug.Log($"android sd card: {androidSDCardPath}");
+        testWriteReadAtPath($"{androidSDCardPath}/testingAgain");
+        
+        yield break;
     }
 
     void symlinkTest()
@@ -144,18 +153,86 @@ public class SampleInit : MonoBehaviour
         
     }
    
-     string resolveSymlinkUsingFile()
-     {
-         
-     }
+    private void ImportFromIntent(string importPath)
+    {
+         try
+         {
+             // Get the current activity
+             AndroidJavaClass unityPlayerClass = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+             AndroidJavaObject activityObject = unityPlayerClass.GetStatic<AndroidJavaObject>("currentActivity");
+
+             // Get the current intent
+             AndroidJavaObject intent = activityObject.Call<AndroidJavaObject>("getIntent");
+
+             // Get the intent data using AndroidJNI.CallObjectMethod so we can check for null
+             IntPtr method_getData = AndroidJNIHelper.GetMethodID(intent.GetRawClass(), "getData", "()Ljava/lang/Object;");
+             IntPtr getDataResult = AndroidJNI.CallObjectMethod(intent.GetRawObject(), method_getData, AndroidJNIHelper.CreateJNIArgArray(new object[0]));
+             if (getDataResult.ToInt32() != 0)
+             {
+                 // Now actually get the data. We should be able to get it from the result of AndroidJNI.CallObjectMethod, but I don't now how so just call again
+                 AndroidJavaObject intentURI = intent.Call<AndroidJavaObject>("getData");
+
+                 // Open the URI as an input channel
+                 AndroidJavaObject contentResolver = activityObject.Call<AndroidJavaObject>("getContentResolver");
+                 AndroidJavaObject inputStream = contentResolver.Call<AndroidJavaObject>("openInputStream", intentURI);
+                 AndroidJavaObject inputChannel = inputStream.Call<AndroidJavaObject>("getChannel");
+
+                 // Open an output channel
+                 AndroidJavaObject outputStream = new AndroidJavaObject("java.io.FileOutputStream", importPath);
+                 AndroidJavaObject outputChannel = outputStream.Call<AndroidJavaObject>("getChannel");
+
+                 // Copy the file
+                 long bytesTransfered = 0;
+                 long bytesTotal = inputChannel.Call<long>("size");
+                 while (bytesTransfered < bytesTotal)
+                 {
+                     bytesTransfered += inputChannel.Call<long>("transferTo", bytesTransfered, bytesTotal, outputChannel);
+                 }
+
+                 // Close the streams
+                 inputStream.Call("close");
+                 outputStream.Call("close");
+             }
+         }
+         catch (System.Exception ex)
+         {
+             // Handle error
+         }
+    }
+             /*
+        */
+    string resolveSymlinkUsingFile()
+    {
+        //
+        //new File("/storage/ext_sd").toPath().toRealPath().toString()
+        string path = "";
+
+        try
+        {
+            AndroidJavaObject fileInstanceTest = new AndroidJavaObject("java.io.File", "/storage/ext_sd");
+            var javaPathObject = fileInstanceTest.Call<AndroidJavaObject>("toPath");
+            //tehcnially thie 
+            //var realPath = javaPathObject.Call<AndroidJavaObject>("toRealPath",new object[]{});
+            var realPath = javaPathObject.Call<AndroidJavaObject>("toRealPath",new object[]{});
+            path = realPath.Call<string>("toString");
+            Debug.Log($"Path is {path}");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"failed resolving symlink : {e.Message}");
+            Debug.LogException(e);
+        }
+        return path;
+    }
     string resolveSymlink(string symlinkPath)
     {
+        
         //return result for java "FileSystems.getDefault().getPath("/storage/ext_sd").toRealPath().toString();"
         AndroidJavaClass fileSystemsClass = new AndroidJavaClass("java.nio.file.FileSystems");
         AndroidJavaObject fileSystemInstance = fileSystemsClass.CallStatic<AndroidJavaObject>("getDefault"); // .GetStatic<AndroidJavaObject>("currentActivity");
         Debug.Log($"Is fs null {fileSystemInstance == null} ");
         AndroidJavaClass pathClass = new AndroidJavaClass("java.nio.file.Path");
-        AndroidJavaObject pathInstanceTest = new AndroidJavaObject("java.nio.file.Path")
+        AndroidJavaObject pathInstanceTest = new AndroidJavaObject("java.nio.file.Path");
         //AndroidJavaObject pathObject = new AndroidJavaObject("")
 
         //AndroidJavaObject symlinkPathObjectInstance = fileSystemInstance.Call<AndroidJavaObject>("getPath", symlinkPath); //i think this fails since it's trying to use the Path version instead of the arbitrary string based ones.. could fix this if i did the marshalling myself
@@ -183,6 +260,57 @@ public class SampleInit : MonoBehaviour
                 */
 
         return "symlinkCSharpString";
+    }
+    
+    public static string GetAndroidExternalSDDir()
+    {
+        try
+        {
+            using (AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
+            {
+                using (AndroidJavaObject context = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity"))
+                {
+                    // Get all available external file directories (emulated and sdCards)
+                    //AndroidJavaObject[] externalFilesDirectories = context.Call<AndroidJavaObject[]>("getExternalFilesDirs");
+                    AndroidJavaObject[] externalFilesDirectories =  context.Call<AndroidJavaObject[]>("getExternalFilesDirs", (object)null);
+                    AndroidJavaObject emulated = null;
+                    AndroidJavaObject sdCard = null;
+                    if (externalFilesDirectories == null)
+                    {
+                        Debug.LogError("NULL EXTERNAL FILES DIR");
+                        return "";
+                    }
+                    
+                    for (int i = 0; i < externalFilesDirectories.Length; i++)
+                    {
+                        AndroidJavaObject directory = externalFilesDirectories[i];
+                        using (AndroidJavaClass environment = new AndroidJavaClass("android.os.Environment"))
+                        {
+                            // Check which one is the emulated and which the sdCard.
+                            bool isRemovable = environment.CallStatic<bool>("isExternalStorageRemovable", directory);
+                            bool isEmulated = environment.CallStatic<bool>("isExternalStorageEmulated", directory);
+                            if (isEmulated)
+                                emulated = directory;
+                            else if (isRemovable && isEmulated == false)
+                                sdCard = directory;
+                        }
+                    }
+                    // Return the sdCard if available
+                    if (sdCard != null)
+                    {
+                        string returnStr = sdCard.Call<string>("getAbsolutePath");
+                        return returnStr;
+                        //return returnStr.Substring(0, returnStr.IndexOf("Android")) + "/";
+                    }
+                    else
+                        return null;// emulated.Call<string>("getAbsolutePath");
+                }
+            }
+        } catch(Exception e)
+        {
+            Debug.LogWarning(e.ToString());
+            return null;
+        }
     }
     void manualWriteTest()
     {
