@@ -32,7 +32,7 @@ public class SampleInit : MonoBehaviour
                     if (externalFilesDirectories == null)
                     {
                         Debug.LogError("NULL EXTERNAL FILES DIR");
-                        return "";
+                        return string.Empty;
                     }
                     
                     for (int i = 0; i < externalFilesDirectories.Length; i++)
@@ -54,13 +54,13 @@ public class SampleInit : MonoBehaviour
                         return returnStr;
                     }
                     else
-                        return "";// emulated.Call<string>("getAbsolutePath");
+                        return string.Empty;// emulated.Call<string>("getAbsolutePath");
                 }
             }
         } catch(Exception e)
         {
             Debug.LogWarning(e.ToString());
-            return null;
+            return string.Empty;
         }
     }
 
