@@ -64,20 +64,11 @@ public class SampleInit : MonoBehaviour
 
         //,"vive.wave.vr.oem.data.OEMDataWrite" <- no popup and never gets granted
         var permissions = new[] {"android.permission.READ_EXTERNAL_STORAGE", "android.permission.WRITE_EXTERNAL_STORAGE","vive.wave.vr.oem.data.OEMDataRead"};
-        
-        yield return WaitOnPermissions(pmInstance, permissions);
+        // "com.htc.vr.core.server.VRDataRead" ??
+        yield return WaitOnPermissions(pmInstance, permissions,10);
         Debug.Log("Got known good permissions");
-
-        yield return WaitOnPermissions(pmInstance, new[]
-        {
-            "com.htc.vr.core.server.VRDataRead"
-            /*,
-            "com.htc.vr.core.server.VRDataWrite", //doesn't return true ever
-            "com.htc.vr.core.server.VRDataProvider" //doesn't return true ever
-            */
-        },100);
-
-        Debug.Log("About to write");
+        
+        Debug.Log("About to write -- sanity check");
         
         //var filePath = $"/mnt/sdcard/Android/data/{Application.identifier}/files/testingfoo";
         try
