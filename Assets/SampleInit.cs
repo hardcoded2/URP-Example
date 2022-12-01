@@ -64,27 +64,117 @@ public class SampleInit : MonoBehaviour
 
         //,"vive.wave.vr.oem.data.OEMDataWrite" <- no popup and never gets granted
         var permissions = new[] {"android.permission.READ_EXTERNAL_STORAGE", "android.permission.WRITE_EXTERNAL_STORAGE","vive.wave.vr.oem.data.OEMDataRead"};
-        // "com.htc.vr.core.server.VRDataRead" ??
-        yield return WaitOnPermissions(pmInstance, permissions,10);
-        Debug.Log("Got known good permissions");
         
-        Debug.Log("About to write -- sanity check");
+        yield return WaitOnPermissions(pmInstance, permissions);
+        Debug.Log("Got known good permissions");
+
+        /*,
+    
+    yield return WaitOnPermissions(pmInstance, new[]
+    {
+        "com.htc.vr.core.server.VRDataRead" //seems to block on the request
+        "com.htc.vr.core.server.VRDataWrite", //doesn't return true ever
+        "com.htc.vr.core.server.VRDataProvider" //doesn't return true ever
+        },100);
+        */
+
+        Debug.Log("About to write");
         
         //var filePath = $"/mnt/sdcard/Android/data/{Application.identifier}/files/testingfoo";
         try
         {
-            var filePath = $"/storage/ext_sd/Android/data/{Application.identifier}/files/testingfoo"; //should work
-            testWriteReadAtPath(filePath);
+            manualWriteTest();
         }
         catch (Exception e)
         {
+            Debug.LogError($"ManualTestwrite failed due to {e.Message}");
+        }
+        
+        try
+        {
+            testWriteToAllStorageDirectories();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"asink: error writing to all storage directories" + e.Message);
             Debug.LogException(e);
         }
     }
 
+    void manualWriteTest()
+    {
+        const string DEBUG_SD_CARD_ID_SPECIFIC_TO_AUTHOR_HARDWARE = "52A0-B627";
+        var filesToTry = new string[]
+        {
+            $"/storage/ext_sd/Android/data/{Application.identifier}/files/testingfoo",
+            $"/storage/ext_sd/Android/data/{Application.identifier}/cache/testingfoo2",
+            $"/storage/{DEBUG_SD_CARD_ID_SPECIFIC_TO_AUTHOR_HARDWARE}/Android/data/{Application.identifier}/cache/testingfoo3",
+            $"/storage/{DEBUG_SD_CARD_ID_SPECIFIC_TO_AUTHOR_HARDWARE}/Android/data/{Application.identifier}/files/testingfoo4"
+        };
+        var logPrefix = $"asink: {nameof(manualWriteTest)}";
+        foreach (var filePath in filesToTry)
+        {
+            try
+            {
+                testWriteReadAtPath(filePath);
+                Debug.Log($"{logPrefix} successfully wrote file {filePath}");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"{logPrefix} Failed to write file {filePath} : {e.Message}");
+                Debug.LogException(e);
+            }
+            
+        }
+
+        //var directory = $"/storage/ext_sd/Android/data/{Application.identifier}/"; //this fails
+        var directory = $"/storage/{DEBUG_SD_CARD_ID_SPECIFIC_TO_AUTHOR_HARDWARE}/Android/data/{Application.identifier}/";
+        PrintFilesInDirectory(directory,"testingfoo*",logPrefix);
+        
+    }
+
+    void PrintFilesInDirectory(string directory,string matchString,string logPrefix)
+    {
+        try
+        {
+            var allFiles = Directory.GetFiles(directory, matchString,SearchOption.AllDirectories);
+            
+            Debug.Log($"{logPrefix} All written files:" + String.Join(" and ",allFiles));
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"{logPrefix} Failed finding files in directory {directory} : {e.Message}");
+            Debug.LogException(e);
+        }
+    }
+
+    void testWriteToAllStorageDirectories()
+    {
+        //try writing to all drives
+        int fileNumber = 0;
+        var logPrefix = $"asink: {nameof(testWriteToAllStorageDirectories)}";
+        foreach (var rootDirectory in Directory.EnumerateDirectories("/storage"))
+        {
+            var filePath = $"{rootDirectory}/Android/data/{Application.identifier}/files/testingbar{fileNumber++}";
+            try
+            {
+                testWriteReadAtPath(filePath);
+                Debug.Log($"{logPrefix} successfully wrote file {filePath}");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"{logPrefix} Failed to write file {filePath}");
+                Debug.LogException(e);
+            }
+            
+        }
+        var directory = $"/storage/";
+        PrintFilesInDirectory(directory,"testingbar*",logPrefix);
+    }
+
     void testWriteReadAtPath(string filePath)
     {
-        var msg = $"contents wooo {DateTime.Now.ToString()} and temp cache path {Application.temporaryCachePath} and persistent {Application.persistentDataPath}";
+        var msg = $"contents wooo {DateTime.Now.ToString()} to file location {filePath}";
         Debug.Log($"About to write to {filePath}");
 
         File.WriteAllText(filePath,msg);
